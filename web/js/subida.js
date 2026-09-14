@@ -1,4 +1,6 @@
 const UPLOAD_BUCKET = "ms-mr-garibaldi-santos-media";
+const MAX_PHOTO_SIZE = 8 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 30 * 1024 * 1024;
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 async function seleccionarArchivos() {
@@ -25,15 +27,20 @@ async function seleccionarArchivos() {
 
         for (const archivo of archivos) {
 
-            if (archivo.size > MAX_FILE_SIZE) {
-                errores++;
+           const esVideo = archivo.type.startsWith("video/");
+           const limite = esVideo ? MAX_VIDEO_SIZE : MAX_PHOTO_SIZE;
 
-                alert(
-                    `"${archivo.name}" supera el límite de 50 MB y no se subirá.`
-                );
+         if (archivo.size > limite) {
+             errores++;
 
-                continue;
-            }
+             const limiteMB = esVideo ? 30 : 8;
+
+             alert(
+                 `"${archivo.name}" supera el límite de ${limiteMB} MB y no se subirá.`
+             );
+
+             continue;
+         }
 
             const nombre =
                 Date.now() +
