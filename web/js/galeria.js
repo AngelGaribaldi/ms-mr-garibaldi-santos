@@ -1,19 +1,41 @@
 const GALLERY_BUCKET = "ms-mr-garibaldi-santos-media";
 const GALLERY_LIMIT = 9;
+const GALLERY_FETCH = 10;
+
+let galleryOffset = 0;
 
 async function cargarGaleria() {
     const gallery = document.getElementById("gallery");
+    const boton = document.getElementById("ver-mas");
 
     if (!gallery) return;
 
+    galleryOffset = 0;
     gallery.innerHTML = "<p>Cargando recuerdos...</p>";
+
+    if (boton) {
+        boton.style.display = "none";
+    }
+
+    await cargarRecuerdos(false);
+}
+
+async function cargarMasRecuerdos() {
+    await cargarRecuerdos(true);
+}
+
+async function cargarRecuerdos(agregar) {
+    const gallery = document.getElementById("gallery");
+    const boton = document.getElementById("ver-mas");
+
+    if (!gallery) return;
 
     const { data, error } = await supabaseClient
         .storage
         .from(GALLERY_BUCKET)
         .list("", {
-            limit: GALLERY_LIMIT,
-            offset: 0,
+            limit: GALLERY_FETCH,
+            offset: galleryOffset,
             sortBy: {
                 column: "created_at",
                 order: "desc"
@@ -22,20 +44,37 @@ async function cargarGaleria() {
 
     if (error) {
         console.error("Error cargando galería:", error);
-        gallery.innerHTML = "<p>No se pudieron cargar los recuerdos.</p>";
+
+        if (!agregar) {
+            gallery.innerHTML =
+                "<p>No se pudieron cargar los recuerdos.</p>";
+        }
+
         return;
     }
 
-    if (!data || data.length === 0) {
+    const archivos = (data || []).filter(
+        archivo => archivo.name
+    );
+
+    if (!agregar && archivos.length === 0) {
         gallery.innerHTML = "<p>Aún no hay recuerdos.</p>";
+
+        if (boton) {
+            boton.style.display = "none";
+        }
+
         return;
     }
 
-    gallery.innerHTML = "";
+    if (!agregar) {
+        gallery.innerHTML = "";
+    }
 
-    data.forEach((archivo) => {
-        if (!archivo.name) return;
+    const recuerdosParaMostrar =
+        archivos.slice(0, GALLERY_LIMIT);
 
+    recuerdosParaMostrar.forEach((archivo) => {
         const { data: publicUrlData } =
             supabaseClient
                 .storage
@@ -81,8 +120,17 @@ async function cargarGaleria() {
 
         gallery.appendChild(item);
     });
-}
 
+    galleryOffset += recuerdosParaMostrar.length;
+
+    if (boton) {
+        if (archivos.length > GALLERY_LIMIT) {
+            boton.style.display = "inline-block";
+        } else {
+            boton.style.display = "none";
+        }
+    }
+}
 
 function abrirRecuerdo(url, esVideo) {
     const modal = document.createElement("div");
@@ -126,7 +174,6 @@ function abrirRecuerdo(url, esVideo) {
         }
     });
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
     cargarGaleria();
