@@ -278,6 +278,87 @@
         width: 92%;
     }
 }
+.guest-identification {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.96);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+}
+
+.guest-identification-card {
+    width: 100%;
+    max-width: 430px;
+    text-align: center;
+}
+
+.guest-identification-card h2 {
+    margin-bottom: 15px;
+}
+
+.guest-identification-card p {
+    margin-bottom: 28px;
+    line-height: 1.6;
+}
+
+.guest-identification-card input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 50px;
+    padding: 14px 16px;
+    border: 1px solid #d8d2ca;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 15px;
+}
+
+.guest-identification-card input:focus {
+    border-color: #aaa;
+}
+
+.guest-identification-card .upload-button {
+    min-width: 140px;
+}
+
+.guest-welcome {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.96);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.guest-welcome-hide {
+    opacity: 0;
+}
+
+.guest-welcome-card {
+    text-align: center;
+    max-width: 450px;
+}
+
+.guest-welcome-heart {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.guest-welcome-card h2 {
+    margin-bottom: 12px;
+}
+
+.guest-welcome-card p {
+    line-height: 1.6;
+}
 </style>
 </head>
 
@@ -313,13 +394,7 @@
     <p>Déjanos unas palabras para recordar este día.</p>
 
     <div class="message-form">
-        <input
-            type="text"
-            id="guest-name"
-            placeholder="Tu nombre y apellido"
-            maxlength="100"
-        >
-
+        
         <textarea
             id="guest-message"
             placeholder="Escribe aquí tu mensaje..."
@@ -401,6 +476,7 @@
             input.click();
         }
     </script>
+<script src="js/identificacion.js"></script>
 <script src="js/subida.js"></script>
 <script src="js/galeria.js"></script>
 <script src="js/mensajes.js"></script>

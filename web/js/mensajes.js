@@ -1,20 +1,33 @@
 const MESSAGES_TABLE = "messages";
 
+async function obtenerInvitadoActual() {
+    const guestId = localStorage.getItem(GUEST_STORAGE_KEY);
+
+    if (!guestId) {
+        return null;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("guests")
+        .select("id, name")
+        .eq("id", guestId)
+        .maybeSingle();
+
+    if (error) {
+        console.error("Error obteniendo invitado:", error);
+        return null;
+    }
+
+    return data;
+}
+
 async function enviarMensaje() {
-    const nombreInput = document.getElementById("guest-name");
     const mensajeInput = document.getElementById("guest-message");
     const boton = document.getElementById("send-message");
 
-    if (!nombreInput || !mensajeInput) return;
+    if (!mensajeInput) return;
 
-    const nombre = nombreInput.value.trim();
     const mensaje = mensajeInput.value.trim();
-
-    if (!nombre) {
-        alert("Por favor escribe tu nombre.");
-        nombreInput.focus();
-        return;
-    }
 
     if (!mensaje) {
         alert("Por favor escribe un mensaje.");
@@ -27,6 +40,16 @@ async function enviarMensaje() {
         return;
     }
 
+    const invitado = await obtenerInvitadoActual();
+
+    if (!invitado) {
+        alert(
+            "No pudimos identificarte. " +
+            "Por favor recarga la página."
+        );
+        return;
+    }
+
     if (boton) {
         boton.disabled = true;
         boton.textContent = "Enviando...";
@@ -35,7 +58,8 @@ async function enviarMensaje() {
     const { error } = await supabaseClient
         .from(MESSAGES_TABLE)
         .insert({
-            guest_name: nombre,
+            guest_id: invitado.id,
+            guest_name: invitado.name,
             message: mensaje
         });
 
@@ -43,7 +67,8 @@ async function enviarMensaje() {
         console.error("Error enviando mensaje:", error);
 
         alert(
-            "No pudimos guardar tu mensaje. Inténtalo nuevamente."
+            "No pudimos guardar tu mensaje. " +
+            "Inténtalo nuevamente."
         );
 
         if (boton) {
@@ -54,7 +79,6 @@ async function enviarMensaje() {
         return;
     }
 
-    nombreInput.value = "";
     mensajeInput.value = "";
 
     if (boton) {
@@ -66,7 +90,6 @@ async function enviarMensaje() {
 
     cargarMensajes();
 }
-
 
 async function cargarMensajes() {
     const lista = document.getElementById("messages-list");
@@ -82,14 +105,17 @@ async function cargarMensajes() {
 
     if (error) {
         console.error("Error cargando mensajes:", error);
+
         lista.innerHTML =
             "<p>No se pudieron cargar los mensajes.</p>";
+
         return;
     }
 
     if (!data || data.length === 0) {
         lista.innerHTML =
             "<p>Aún no hay mensajes. Sé el primero en escribirnos.</p>";
+
         return;
     }
 
@@ -111,7 +137,6 @@ async function cargarMensajes() {
         lista.appendChild(tarjeta);
     });
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
     cargarMensajes();
