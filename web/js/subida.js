@@ -15,12 +15,23 @@ async function seleccionarArchivos() {
             return;
         }
 
+        let subidos = 0;
+        let errores = 0;
+
+        alert(
+            `Compartiendo ${archivos.length} recuerdo(s)...\n\n` +
+            "La ventana puede tardar unos momentos en completarse."
+        );
+
         for (const archivo of archivos) {
 
             if (archivo.size > MAX_FILE_SIZE) {
+                errores++;
+
                 alert(
                     `"${archivo.name}" supera el límite de 50 MB y no se subirá.`
                 );
+
                 continue;
             }
 
@@ -38,16 +49,26 @@ async function seleccionarArchivos() {
 
             if (error) {
                 console.error("Error al subir:", error);
-
-                alert(
-                    `No se pudo subir "${archivo.name}".`
-                );
-
+                errores++;
                 continue;
             }
+
+            subidos++;
+
+            console.log(
+                `Recuerdos compartidos: ${subidos} de ${archivos.length}`
+            );
         }
 
-        alert("¡Tus recuerdos se han compartido correctamente!");
+        let mensaje =
+            `¡Listo!\n\n${subidos} de ${archivos.length} recuerdo(s) compartido(s).`;
+
+        if (errores > 0) {
+            mensaje +=
+                `\n\n${errores} archivo(s) no pudieron compartirse.`;
+        }
+
+        alert(mensaje);
 
         if (typeof cargarGaleria === "function") {
             cargarGaleria();
