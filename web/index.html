@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>MS & MR GARIBALDI SANTOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <title>Ms  &  Mr Garibaldi Santos</title>
 
     <style>
         * {
@@ -38,10 +40,11 @@
         }
 
         h1 {
-            margin: 0;
-            font-size: clamp(38px, 8vw, 72px);
-            font-weight: normal;
-            letter-spacing: 3px;
+             margin: 0;
+    font-size: clamp(42px, 9vw, 78px);
+    font-weight: normal;
+    letter-spacing: 1px;
+    font-family: "Great vibes", cursive;
         }
 
         .line {
@@ -63,7 +66,128 @@
             margin: 0 auto;
             max-width: 550px;
         }
-    </style>
+    .upload-button {
+    margin-top: 30px;
+    padding: 15px 28px;
+    border: 1px solid #777;
+    background: transparent;
+    color: #2f2f2f;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-button:hover {
+    background: #2f2f2f;
+    color: #f5f2ed;
+}
+.gallery-section {
+    margin-top: 50px;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 700px;
+    margin: 30px auto 0;
+}
+
+.gallery-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    cursor: pointer;
+    background: #e8e4de;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.03);
+}
+
+.video-thumbnail {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.play-icon {
+    font-size: 38px;
+}
+
+.video-label {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.media-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content img,
+.modal-content video {
+    max-width: 95vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.close-modal {
+    position: absolute;
+    top: -45px;
+    right: 0;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 36px;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .gallery {
+        gap: 4px;
+    }
+
+    .gallery-section {
+        margin-top: 40px;
+    }
+}
+</style>
 </head>
 
 <body>
@@ -75,22 +199,75 @@
         </div>
 
         <h1>
-            MS &amp; MR<br>
-            GARIBALDI SANTOS
+            Ms  &amp;  Mr<br>
+            Garibaldi Santos
         </h1>
 
         <div class="line"></div>
 
         <h2>
-            Nuestros recuerdos
+           Comparte Nuestros Recuerdos
         </h2>
 
         <p>
-            Comparte las fotografías y videos que captures
-            durante nuestra celebración.
+           Captura un momento de nuestra celebración
+           y compártelo con nosotros.
         </p>
+        <button class="upload-button" onclick="probarSubida()">
+    Compartir fotografías y videos
+        </button>
+<section class="gallery-section">
+    <h2>Nuestros recuerdos</h2>
 
+    <div id="gallery" class="gallery">
+        <p>Cargando recuerdos...</p>
+    </div>
+</section>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <script>
+        const SUPABASE_URL = "https://irrdwqvptebgbzykljkc.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_6kLm63uzUNTrokNwqVVDdw_5Ua_jKyZ";
+
+        const supabaseClient = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        async function probarSubida() {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*,video/*";
+
+            input.onchange = async () => {
+                const archivo = input.files[0];
+
+                if (!archivo) return;
+
+                const nombre =
+                    Date.now() + "-" +
+                    Math.random().toString(36).substring(2, 8) +
+                    "-" +
+                    archivo.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+                const { error } = await supabaseClient
+                    .storage
+                    .from("ms-mr-garibaldi-santos-media")
+                    .upload(nombre, archivo);
+
+                if (error) {
+                    alert("Error al subir: " + error.message);
+                    console.error(error);
+                    return;
+                }
+
+                alert("¡Archivo subido correctamente!");
+            };
+
+            input.click();
+        }
+    </script>
+<script src="js/galeria.js"></script>
 </body>
 </html>
