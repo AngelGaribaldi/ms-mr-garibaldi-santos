@@ -1,7 +1,6 @@
 const UPLOAD_BUCKET = "ms-mr-garibaldi-santos-media";
 const MAX_PHOTO_SIZE = 8 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 30 * 1024 * 1024;
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 async function seleccionarArchivos() {
     const input = document.createElement("input");
@@ -17,6 +16,16 @@ async function seleccionarArchivos() {
             return;
         }
 
+        const guestId = localStorage.getItem(GUEST_STORAGE_KEY);
+
+        if (!guestId) {
+            alert(
+                "No pudimos identificarte. " +
+                "Por favor recarga la página."
+            );
+            return;
+        }
+
         let subidos = 0;
         let errores = 0;
 
@@ -27,20 +36,24 @@ async function seleccionarArchivos() {
 
         for (const archivo of archivos) {
 
-           const esVideo = archivo.type.startsWith("video/");
-           const limite = esVideo ? MAX_VIDEO_SIZE : MAX_PHOTO_SIZE;
+            const esVideo = archivo.type.startsWith("video/");
+            const tipoMedia = esVideo ? "video" : "image";
 
-         if (archivo.size > limite) {
-             errores++;
+            const limite = esVideo
+                ? MAX_VIDEO_SIZE
+                : MAX_PHOTO_SIZE;
 
-             const limiteMB = esVideo ? 30 : 8;
+            if (archivo.size > limite) {
+                errores++;
 
-             alert(
-                 `"${archivo.name}" supera el límite de ${limiteMB} MB y no se subirá.`
-             );
+                const limiteMB = esVideo ? 30 : 8;
 
-             continue;
-         }
+                alert(
+                    `"${archivo.name}" supera el límite de ${limiteMB} MB y no se subirá.`
+                );
+
+                continue;
+            }
 
             const nombre =
                 Date.now() +
@@ -49,13 +62,36 @@ async function seleccionarArchivos() {
                 "-" +
                 archivo.name.replace(/[^a-zA-Z0-9._-]/g, "_");
 
-            const { error } = await supabaseClient
+            const { error: uploadError } = await supabaseClient
                 .storage
                 .from(UPLOAD_BUCKET)
                 .upload(nombre, archivo);
 
-            if (error) {
-                console.error("Error al subir:", error);
+            if (uploadError) {
+                console.error(
+                    "Error al subir archivo:",
+                    uploadError
+                );
+
+                errores++;
+                continue;
+            }
+
+            const { error: mediaError } = await supabaseClient
+                .from("media")
+                .insert({
+                    guest_id: guestId,
+                    storage_path: nombre,
+                    media_type: tipoMedia,
+                    source: "recuerdo"
+                });
+
+            if (mediaError) {
+                console.error(
+                    "Archivo subido pero no se pudo registrar en media:",
+                    mediaError
+                );
+
                 errores++;
                 continue;
             }
